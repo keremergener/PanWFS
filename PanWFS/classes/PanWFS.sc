@@ -1,6 +1,7 @@
 PanWFS_Monopole : MultiOutUGen {
 	*ar {
-		arg input = 0.0,
+		arg
+		input = 0.0,
 		virtual_x = 0.0,
 		virtual_z = 0.0,
 		numChans = 8,
@@ -9,8 +10,10 @@ PanWFS_Monopole : MultiOutUGen {
 		roomTemp = 20,
 		humidity = 50,
 		groundElevation = 0.0,
-		max_delay = 0.5;
+		max_delay = 0.5,
+		lagTime = 0.02;
 
+		input = input.asArray.sum;
 		numChans = numChans.asInteger.clip(1, 256);
 
 		^this.multiNew(
@@ -24,7 +27,8 @@ PanWFS_Monopole : MultiOutUGen {
 			roomTemp,
 			humidity,
 			groundElevation,
-			max_delay
+			max_delay,
+			lagTime
 		)
 	}
 
@@ -37,7 +41,8 @@ PanWFS_Monopole : MultiOutUGen {
 
 PanWFS_Cardioid : MultiOutUGen {
 	*ar {
-		arg input = 0.0,
+		arg
+		input = 0.0,
 		virtual_x = 0.0,
 		virtual_z = 0.0,
 		yaw = (-pi/2),
@@ -47,8 +52,10 @@ PanWFS_Cardioid : MultiOutUGen {
 		roomTemp = 20,
 		humidity = 50,
 		groundElevation = 0.0,
-		max_delay = 0.5;
+		max_delay = 0.5,
+		lagTime = 0.02;
 
+		input = input.asArray.sum;
 		numChans = numChans.asInteger.clip(1, 256);
 
 		^this.multiNew(
@@ -63,7 +70,8 @@ PanWFS_Cardioid : MultiOutUGen {
 			roomTemp,
 			humidity,
 			groundElevation,
-			max_delay
+			max_delay,
+			lagTime
 		)
 	}
 
@@ -83,7 +91,10 @@ PanWFS_Headphone : MultiOutUGen {
 		listener_z = -2.0,
 		headyaw = 0.0,
 		headWidth = 0.18,
-		distRef = 1.0;
+		distRef = 1.0,
+		lagTime = 0.02;
+
+		input = input.asArray.sum;
 
 		^this.multiNew(
 			'audio',
@@ -95,7 +106,8 @@ PanWFS_Headphone : MultiOutUGen {
 			listener_z,
 			headyaw,
 			headWidth,
-			distRef
+			distRef,
+			lagTime
 		)
 	}
 
@@ -125,6 +137,8 @@ PanWFS_Binaural : MultiOutUGen {
 		var notchFcFront, notchFcRear, notchRq, notchDb;
 		var rearHiShelfFc, rearHiShelfRs, rearHiShelfDb;
 		var outputGainDb;
+
+		input = input.asArray.sum;
 
 		p = hrtf ? ();
 
