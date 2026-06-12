@@ -4,7 +4,7 @@ CATEGORIES:: UGens>Multichannel>Panners>PanWFS
 
 DESCRIPTION::
 
-PanWFS_Cartesian renders a single virtual point source for directional sound sources (like human head) over a straight line array of loudspeakers using 2½-D Wave Field Synthesis (WFS). It outputs signals for n channels of audio, applying the per-speaker delay and amplitude derived from the Rayleigh/Huygens formulation.
+PanWFS_Cardioid renders a single virtual point source for directional sound sources (like human head) over a straight line array of loudspeakers using 2½-D Wave Field Synthesis (WFS). It outputs signals for n channels of audio, applying the per-speaker delay and amplitude derived from the Rayleigh/Huygens formulation.
 
 This UGen is designed for both able to create non-focused (behind the speaker) and focused (front of the speaker) sound sources.
 
