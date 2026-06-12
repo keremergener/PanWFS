@@ -13,8 +13,6 @@ The package currently includes:
 The WFS UGens are designed for regular linear loudspeaker arrays. The headphone and binaural UGens provide lightweight two-channel monitoring tools for previewing spatial motion over headphones.
 
 > Status: experimental / research version.  
-> These UGens are intended for testing, development, and comparison against the original SuperCollider pseudo-UGens.
-
 ---
 
 ## Contents
@@ -226,10 +224,10 @@ x = {
     sig = SinOsc.ar(220) * 0.1;
 
     PanWFS_Monopole.ar(
-        8,
         input: sig,
         virtual_x: MouseX.kr(-1.0, 1.0),
         virtual_z: MouseY.kr(0.2, 4.0),
+        8,
         speaker_distance: 0.125,
         zRef: 2,
         roomTemp: 20,
@@ -258,11 +256,11 @@ x = {
     sig = Saw.ar(120) * 0.05;
 
     PanWFS_Cardioid.ar(
-        8,
         input: sig,
         virtual_x: MouseX.kr(-1.0, 1.0),
         virtual_z: MouseY.kr(0.2, 4.0),
         yaw: MouseX.kr(-pi, pi),
+        8,
         speaker_distance: 0.125,
         zRef: 2,
         roomTemp: 20,
@@ -471,10 +469,8 @@ Possible next steps:
 
 - Add `PanWFS_MonopoleBuf` for arbitrary loudspeaker positions from a Buffer.
 - Add `PanWFS_CardioidBuf` for irregular arrays.
-- Add validation plots comparing pseudo-UGen and C++ UGen output.
-- Add help files: `.schelp`.
-- Add example SynthDefs for 8-channel, 64-channel, and 192-channel systems.
-- Add benchmark comparisons between pseudo-UGen and real UGen versions.
+- Add `PanWFS_MonopoleSquare` for square arrays.
+- Add reverb algorythms. 
 
 ---
 
