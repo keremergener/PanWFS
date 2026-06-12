@@ -7,6 +7,9 @@ PanWFS
 Copyright (c) 2026 Kerem Ergener. All rights reserved.
 Licensed under the PanWFS Source-Available License.
 See LICENSE for details.
+keremergener.com
+
+More information of The AURA WFS system: theaura.keremergener.com
 
 Disclaimer
 PanWFS is experimental research software for spatial audio and Wave Field Synthesis workflows. Users are responsible for testing patches, gain staging, loudspeaker routing, and output levels before use in studio, installation, or performance contexts. The author is not responsible for speaker damage, hearing damage, data loss, failed performances, incorrect spatial rendering, or any other damages resulting from the use or misuse of this software.
