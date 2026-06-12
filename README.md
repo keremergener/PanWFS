@@ -1,4 +1,4 @@
-# PanWFS Real UGens
+# PanWFS UGens
 
 **PanWFS Real UGens** is a SuperCollider server-plugin implementation of the PanWFS spatialization tools.  
 It moves the main DSP work from SuperCollider pseudo-UGens into compiled C++ UGens.
