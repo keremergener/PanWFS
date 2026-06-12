@@ -1,3 +1,11 @@
+// PanWFS
+// Copyright (c) 2026 Kerem Ergener. All rights reserved.
+// Licensed under the PanWFS Source-Available License.
+// See LICENSE for details.
+
+// Disclaimer
+// PanWFS is experimental research software for spatial audio and Wave Field Synthesis workflows. Users are responsible for testing patches, gain staging, loudspeaker routing, and output levels before use in studio, installation, or performance contexts. The author is not responsible for speaker damage, hearing damage, data loss, failed performances, incorrect spatial rendering, or any other damages resulting from the use or misuse of this software.
+
 PanWFS_Cardioid {
 	*ar{
 		arg input, virtual_x = 0.0, virtual_z = 0.0, yaw = (-pi/2), number_of_speakers = 8, speaker_distance = 0.125, zRef = 2, roomTemp = 20, humidity = 50, groundElevation = 0.0 , max_delay = 0.5;
@@ -5,6 +13,8 @@ PanWFS_Cardioid {
 		var sig, amp, speakerX, speakerZ, speaker_dist, time_delay, dxs, dzs, cosPhi, deltaR, zGain,amp2D, amp3D, mode, speedOfSound, pa, alpha, dmin, ux, uz, vhatx, vhatz, dcard, d, dnorm,cosTheta, dx0, dz0, r0, cosTheta0, turn, maxCutDb, shelfDb;
 
 		sig = input;
+
+		virtual_x = virtual_x - (number_of_speakers * speaker_distance * 0.25);
 
 		humidity = humidity/100; //humidity normalizer
 		pa =  (101325 * ((1 - (2.25577e-5 * groundElevation)).pow(5.2559))); //barometric pressure calculation
@@ -52,7 +62,7 @@ PanWFS_Cardioid {
 		amp3D = (1.0 / speaker_dist); // ~ -6 dB per doubling
 		amp2D = (1.0 / speaker_dist.sqrt);  // ~ -3 dB per doubling
 
-		// sig = HPZ1.ar(sig) * (SampleRate.ir / (2pi*speedOfSound)); //jk
+		sig = HPZ1.ar(sig) * (SampleRate.ir / (2pi*speedOfSound)); //jk
 		sig = HPF.ar(sig, 30);            // tame DC/infra
 
 		dx0 = (0 - virtual_x);
@@ -73,7 +83,6 @@ PanWFS_Cardioid {
 	}
 
 }
-
 
 
 
