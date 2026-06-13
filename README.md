@@ -1,6 +1,6 @@
 # PanWFS UGens
 
-**PanWFS Real UGens** is a SuperCollider server-plugin implementation of the PanWFS spatialization tools.  
+**PanWFS UGens** is a SuperCollider server-plugin implementation of the PanWFS spatialization tools.  
 It moves the main DSP work from SuperCollider pseudo-UGens into compiled C++ UGens.
 
 The package currently includes:
@@ -31,6 +31,26 @@ PanWFS_RealUGens/
 
 ---
 
+## Downloads
+
+Three macOS builds are provided:
+
+| Build | Architecture | Use this if... |
+|---|---:|---|
+| **PanWFS x86** | `x86_64` | You are running the Intel version of SuperCollider, including Intel SuperCollider running under Rosetta on Apple Silicon. |
+| **PanWFS arm64** | `arm64` | You are running the native Apple Silicon version of SuperCollider. |
+| **PanWFS universal** | `x86_64 + arm64` | You want one plugin file that can run in both Intel and Apple Silicon SuperCollider. |
+
+Recommended download:
+
+- Use **PanWFS x86** if you rely on older Intel-only Quarks or Intel SuperCollider.
+- Use **PanWFS arm64** if you use native Apple Silicon SuperCollider.
+- Use **PanWFS universal** if you want the most flexible build and your SuperCollider versions match.
+
+Important: architecture compatibility and SuperCollider API compatibility are separate issues.  
+
+---
+
 ## Included UGens
 
 ### `PanWFS_Monopole`
@@ -39,10 +59,10 @@ A WFS monopole source for a regular linear speaker array.
 
 ```supercollider
 PanWFS_Monopole.ar(
-    numChans,
     input,
     virtual_x,
     virtual_z,
+    numChans,
     speaker_distance,
     zRef,
     roomTemp,
@@ -58,11 +78,11 @@ A WFS cardioid source with source yaw/directivity control.
 
 ```supercollider
 PanWFS_Cardioid.ar(
-    numChans,
     input,
     virtual_x,
     virtual_z,
     yaw,
+    numChans,
     speaker_distance,
     zRef,
     roomTemp,
