@@ -1,0 +1,71 @@
+CLASS:: PanWFS_Headphone
+SUMMARY:: Binaural panner for WFS production
+CATEGORIES:: UGens>Multichannel>Panners>PanWFS
+
+DESCRIPTION::
+
+PanWFS_Headphone is a panner for headphone monitoring of a virtual point source using a simplified binaural model based on ITD, ILD, and head-shadow cues. It is designed as a lightweight companion to PanWFS, sharing the same Cartesian x–z source coordinates so that a spatial scene can be sketched on headphones before being rendered on a Wave Field Synthesis system.
+
+The source position is interpreted in the PanWFS coordinate space, while listener_x and listener_z define the listener location in that same space. headyaw rotates the listener’s orientation, allowing the binaural image to respond dynamically to head direction. For each ear, PanWFS_Headphone computes source-to-ear distance, derives interaural time differences from geometric delay, applies interaural level differences through distance and side-dependent attenuation, and introduces a simple frequency-dependent head-shadow effect on the far ear.
+
+Because it avoids full HRTF filtering, PanWFS_Headphone is especially useful when low CPU cost, immediacy, and portability are more important than detailed spectral realism. It provides a clear sense of lateral position, depth, and listener-relative orientation, making it suitable for rapid spatial sketching, testing source trajectories, and composing with PanWFS coordinates on ordinary headphones.
+
+PanWFS_Headphone is not intended to reproduce full binaural realism or individualized ear filtering. Rather, it offers a robust and efficient approximation of binaural spatial cues for compositional monitoring.
+
+For light-weight parametric model use PanWFS_Binaural. If you are using Apple AirPods, the Headitude app is recommended for routing head-tracking data to the headyaw argument, enabling active listening through natural head movement. If you are using Apple AirPods, the Headitude app is recommended for routing head-tracking data to the headyaw argument, enabling active listening through natural head movement.
+
+CLASSMETHODS::
+
+METHOD::ar
+
+ARGUMENT::input
+
+The input signal. (WARNING - 1 channel audio only).
+
+ARGUMENT::virtual_x
+
+The horizontal position of the virtual point source in the PanWFS coordinate system. Negative values place the source to the left of the array center, and positive values place it to the right.
+
+ARGUMENT::virtual_z
+
+The depth position of the virtual point source in the PanWFS coordinate system. Positive values place the source behind the loudspeaker line, while negative values place it in front of the array toward the listener.
+
+ARGUMENT::listener_x
+
+The horizontal position of the listener in the same coordinate system as the virtual source. This allows the binaural rendering to be evaluated from positions other than the center of the array.
+
+ARGUMENT::listener_z
+
+The depth position of the listener in the same coordinate system as the virtual source. A typical default is a position in front of the array, such as -2, representing a listener standing two meters in front of the loudspeaker line. Do not use positive values because you cannot physically be in the acousmatic space.
+
+ARGUMENT::headyaw
+
+The listener’s head rotation around the vertical axis, in radians. A value of 0 means the listener is facing straight toward the array, while positive or negative values rotate the listening direction left or right.
+
+ARGUMENT::headWidth
+
+The assumed distance between the ears, in meters. This controls the scale of interaural time and level differences and therefore affects the apparent width and strength of the binaural image.
+
+ARGUMENT::distRed
+
+A distance reference or reduction factor controlling how source amplitude changes with distance. It is used to prevent excessive loudness changes at very close distances while still allowing farther sources to attenuate naturally.
+
+
+EXAMPLES::
+
+CODE::
+
+SynthDef(\WFS, {
+
+	arg out=0, amp = 0.5, virtual_x=0.0, virtual_z=2.0, listener_x=0.0, listener_z = (-2.0), headyaw = 0;
+	var sig;
+
+	sig = WhiteNoise.ar*EnvGen.kr(Env.perc(0.01, 0.2), Impulse.kr(2));
+
+	sig = PanWFS_Headphone.ar(sig, virtual_x, virtual_z,listener_x, listener_z, headyaw);
+
+	Out.ar(out, sig);
+
+}).add;
+
+::

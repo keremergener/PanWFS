@@ -1,0 +1,105 @@
+CLASS:: PanWFS_Binaural
+SUMMARY:: Binaural panner for WFS production
+CATEGORIES:: UGens>Multichannel>Panners>PanWFS
+
+DESCRIPTION::
+
+PanWFS_Binaural is a panner for headphone monitoring of a virtual point source using a lightweight parametric HRTF-style binaural model. It accepts the same Cartesian x–z source coordinates used by PanWFS, allowing a composition to be drafted on headphones while preserving the same spatial coordinate logic intended for Wave Field Synthesis rendering.
+
+The source position is given in the PanWFS coordinate system, where x defines horizontal displacement across the array and z defines depth relative to the loudspeaker line. The listener position is independently movable through listener_x and listener_z, and head orientation is controlled by headyaw, so the binaural image is always calculated relative to the listener rather than a fixed listening point.
+
+Instead of relying on full measured HRIR convolution, PanWFS_Binaural uses a computationally lighter parametric model. It derives interaural arrival-time differences from source-to-ear geometry, applies distance-dependent attenuation, and shapes each ear signal with a small set of filters that approximate head shadow and basic pinna-related spectral cues. This makes it suitable as a practical composition and preview tool for headphone monitoring, while remaining efficient enough for interactive work.
+
+PanWFS_Binaural is intended as a translation-oriented monitoring tool, not as a strict replacement for a real WFS array or a full individualized HRTF renderer. Its purpose is to preserve the spatial intent of a PanWFS scene during composition away from the loudspeaker system. If you are using Apple AirPods, the Headitude app is recommended for routing head-tracking data to the headyaw argument, enabling active listening through natural head movement.
+
+
+CLASSMETHODS::
+
+METHOD::ar
+
+ARGUMENT::input
+
+The input signal. (WARNING - 1 channel audio only).
+
+ARGUMENT::virtual_x
+
+The horizontal position of the virtual point source in the PanWFS coordinate system. Negative values place the source to the left of the array center, and positive values place it to the right.
+
+ARGUMENT::virtual_z
+
+The depth position of the virtual point source in the PanWFS coordinate system. Positive values place the source behind the loudspeaker line, while negative values place it in front of the array toward the listener.
+
+ARGUMENT::listener_x
+
+The horizontal position of the listener in the same coordinate system as the virtual source. This allows the binaural rendering to be evaluated from positions other than the center of the array.
+
+ARGUMENT::listener_z
+
+The depth position of the listener in the same coordinate system as the virtual source. A typical default is a position in front of the array, such as -2, representing a listener standing two meters in front of the loudspeaker line. Do not use positive values because you cannot physically be in the acousmatic space.
+
+ARGUMENT::hrtf
+
+A parametric HRTF settings object used by the renderer to shape binaural cues. Rather than containing full measured HRIR data, this argument typically stores a collection of model parameters controlling head shadow, spectral emphasis, front/back coloration, distance behavior, and related filter characteristics. If hrtf is nil, PanWFS_Binaural uses its internal default settings.
+
+ARGUMENT::headyaw
+
+The listener’s head rotation around the vertical axis, in radians. A value of 0 means the listener is facing straight toward the array, while positive or negative values rotate the listening direction left or right.
+
+EXAMPLES::
+
+CODE::
+
+//HRTF Parameter
+
+(
+~paramHRTF =
+(
+	headWidth: 0.18,
+	speedOfSound: 343.0,
+	maxDelay: 0.05,
+	lagTime: 0.02,
+	minDistance: 0.125,
+	distRef: 1.0,
+
+	shadowFc: 3500,
+	shadowRs: 1.0,
+	shadowDb: -10.0,
+
+	lowShelfFc: 250,
+	lowShelfRs: 1.0,
+	nearLowBoostDb: 2.0,
+	nearRefDistance: 0.6,
+
+	pinnaPeakFcFront: 3200,
+	pinnaPeakFcSide: 4200,
+	pinnaPeakRq: 0.8,
+	pinnaPeakDb: 4.0,
+
+	notchFcFront: 8500,
+	notchFcRear: 6000,
+	notchRq: 0.45,
+	notchDb: -8.0,
+
+	rearHiShelfFc: 5000,
+	rearHiShelfRs: 1.0,
+	rearHiShelfDb: -4.0,
+
+	outputGainDb: 0.0
+);
+)
+
+SynthDef(\WFS, {
+
+	arg out=0, amp = 0.5, virtual_x=0.0, virtual_z=2.0, listener_x=0.0, listener_z = (-2.0), headyaw = 0;
+	var sig;
+
+	sig = WhiteNoise.ar*EnvGen.kr(Env.perc(0.01, 0.2), Impulse.kr(2));
+
+	sig = PanWFS_Binaural.ar(sig, virtual_x, virtual_z, listener_x, listener_z, ~paramHRTF, headyaw);
+
+	Out.ar(out, sig);
+
+}).add;
+
+
+::

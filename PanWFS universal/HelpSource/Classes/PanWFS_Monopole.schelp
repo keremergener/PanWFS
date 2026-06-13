@@ -1,0 +1,75 @@
+CLASS:: PanWFS_Monopole
+SUMMARY:: Equidistant Linear Wave Field Synthesis Panner for Monopole Sound Sources in Cartesian Space
+CATEGORIES:: UGens>Multichannel>Panners>PanWFS
+
+DESCRIPTION::
+
+PanWFS_Cartesian renders a single virtual point source for monopole sound sources over a straight line array of loudspeakers using 2½-D Wave Field Synthesis (WFS). It outputs signals for n channels of audio, applying the per-speaker delay and amplitude derived from the Rayleigh/Huygens formulation.
+
+This UGen is designed for both able to create non-focused (behind the speaker) and focused (front of the speaker) sound sources.
+
+Note: You might encounter with allocation error due to memory with very large arrays. In this case please please increase the memory by [s.options.memSize = 1024 * 2048], 2Gb is minumum recommended. Then the limitation is the CPU. Please be aware of CPU usage and it is recommended to so adjust your server numWireBufs (to 128) and blockSize (to 256).
+
+CLASSMETHODS::
+
+METHOD::ar
+
+ARGUMENT::input
+
+The input signal. (WARNING - 1 channel audio only).
+
+ARGUMENT::virutal_x
+
+Position of the sound source on the X-axis in meters. 0.0 defines point is the middle of the speaker array (-) values describes the direction towards left side of the speaker and (+) values to the right.
+
+ARGUMENT::virutal_z
+
+Position of the sound source on the Z-axis in meters. 0.0 defines point is the middle of the speaker array. (+) values are for the sources behind the speaker (non-focused) and (-) value in front of the speaker (focused).
+
+ARGUMENT::number_of_speakers
+Number of speakes in the speaker array.(WARNING - Even number of speakers only).
+
+ARGUMENT::speaker_distance
+Speaker distance between the each speakers in meters.
+
+ARGUMENT::zRef
+
+Reference line depth Δz0 (m); pick near audience.
+
+ARGUMENT::roomTemp
+
+Room's temperature plays a role in the speed of sound. It is highly recommended to have a thermometer with temperature and humidity reading. You can also implement a sensor with OSC for accurate reading.
+
+ARGUMENT::humidity
+
+Relative humidity in %. (eg. for 41% relative humidity enter 41)
+
+ARGUMENT::groundElevation
+
+Rooms elevation above mean sea level in meters (use negative for below sea level).
+Internally converted to local ambient barometric via the standard-atmosphere barometric formula.
+If unknown, set to 0 (sea level); valid for about 0–11,000 m with small error.
+
+Local ambient barometric pressure is in pascals (At sea level = 101325 Pa).
+
+ARGUMENT::max_delay
+It is the buffer size of the delay. Increase it with caution.
+
+EXAMPLES::
+
+CODE::
+
+SynthDef(\WFS, {
+
+	arg out=0, amp = 0.5, virtual_x=0.0, virtual_z=0.0;
+	var sig;
+
+	sig = WhiteNoise.ar*EnvGen.kr(Env.perc(0.01, 0.2), Impulse.kr(2));
+
+	sig = PanWFS_Cartesian.ar(input: sig, virtual_x, 8, 0.127);
+
+	Out.ar(out, sig);
+
+}).add;
+
+::
