@@ -33,21 +33,7 @@ PanWFS_RealUGens/
 
 ## Downloads
 
-Three macOS builds are provided:
-
-| Build | Architecture | Use this if... |
-|---|---:|---|
-| **PanWFS x86** | `x86_64` | You are running the Intel version of SuperCollider, including Intel SuperCollider running under Rosetta on Apple Silicon. |
-| **PanWFS arm64** | `arm64` | You are running the native Apple Silicon version of SuperCollider. |
-| **PanWFS universal** | `x86_64 + arm64` | You want one plugin file that can run in both Intel and Apple Silicon SuperCollider. |
-
-Recommended download:
-
-- Use **PanWFS x86** if you rely on older Intel-only Quarks or Intel SuperCollider.
-- Use **PanWFS arm64** if you use native Apple Silicon SuperCollider.
-- Use **PanWFS universal** if you want the most flexible build and your SuperCollider versions match.
-
-Important: architecture compatibility and SuperCollider API compatibility are separate issues.  
+Universal MacOS build is provided. File that can run in both Intel and Apple Silicon SuperCollider.
 
 ---
 
