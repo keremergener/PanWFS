@@ -1,0 +1,100 @@
+CLASS:: PanWFS_Calibrate
+SUMMARY:: SPL calibration helper for the PanWFS wave field synthesis renderers
+CATEGORIES:: UGens>Multichannel>Panners>PanWFS
+RELATED:: Classes/PanWFS_Monopole, Classes/PanWFS_Cardioid
+
+DESCRIPTION::
+
+Digital amplitude does not by itself correspond to physical sound pressure level: a close-mic recording normalised to 0 dBFS only defines its maximum digital level, not how loud the reproduced virtual source should be in the room. Every system (audio interface, amplifier, loudspeakers, array size, room) is different, so the rendering chain has to be calibrated once so that virtual-source levels map to measurable dB SPL. Without this you cannot separate a whisper from a trumpet from a car horn.
+
+PanWFS_Calibrate provides that calibration in two steps:
+
+LIST::
+## CODE::*ar:: renders a known reference signal (band-limited pink noise at a chosen RMS) as an on-axis monopole virtual source through the array, at unity SPL gain, so you can measure the actual reproduced level with a sound-level meter.
+## CODE::*k:: turns that meter reading into the system calibration constant TELETYPE::K:: (in dB) and prints it to the post window.
+::
+
+The resulting TELETYPE::K:: is then passed as CODE::kFactor:: to LINK::Classes/PanWFS_Monopole:: and LINK::Classes/PanWFS_Cardioid::, where, together with each source's CODE::maxSpl::, it places sources at real dB SPL. Because the synthesis level is made independent of speaker count and spacing, you calibrate once and it holds across array configurations (assuming identical, equally-driven loudspeakers).
+
+NOTE:: PanWFS_Calibrate is a convenience class: CODE::*ar:: drives the verified LINK::Classes/PanWFS_Monopole:: renderer with an internally normalised pink-noise source, rather than being a separate server plugin. ::
+
+CLASSMETHODS::
+
+METHOD::ar
+Render the calibration tone: pink noise normalised to CODE::refRms:: dBFS, rendered as an on-axis (CODE::x = 0::) monopole virtual source at CODE::sourceDepth:: behind the array, with unity SPL gain. Play it in WFS render and measure the level with a sound-level meter placed on-axis, ideally at the reference line (CODE::z = zRef::). Returns CODE::numChans:: audio channels — route them to your loudspeakers.
+
+ARGUMENT::numChans
+Number of loudspeakers in the array (must match the array you will render with).
+
+ARGUMENT::speaker_distance
+Spacing between loudspeakers in meters (must match your array).
+
+ARGUMENT::zRef
+Reference line depth Δz0 (m). Place the measurement microphone here, on-axis, for an unambiguous reading.
+
+ARGUMENT::sourceDepth
+Depth of the calibration source behind the array, in meters. The source-to-microphone distance used by LINK::#*k:: is CODE::sourceDepth + micDistance::.
+
+ARGUMENT::refRms
+Reference RMS level of the pink-noise tone, in dBFS. Default CODE::-20::. Use the SAME value in LINK::#*k::.
+
+ARGUMENT::roomTemp
+Room temperature in °C (affects the speed of sound). See LINK::Classes/PanWFS_Monopole::.
+
+ARGUMENT::humidity
+Relative humidity in %.
+
+ARGUMENT::groundElevation
+Room elevation above mean sea level in meters (sets ambient barometric pressure). 0 = sea level.
+
+ARGUMENT::max_delay
+Delay-line buffer size in seconds.
+
+ARGUMENT::lagTime
+Position smoothing time in seconds (the source is static here, so this has little effect). Typical: 0.02.
+
+RETURNS:: An array of CODE::numChans:: audio channels carrying the calibration tone.
+
+METHOD::k
+Compute the system calibration constant TELETYPE::K:: from a meter reading and print it to the post window. The calibration source sits CODE::sourceDepth:: behind the array and the microphone CODE::micDistance:: in front, so the source-to-microphone distance is CODE::R = sourceDepth + micDistance::. Since the rendered virtual source follows a 1/r law, the level at 1 m is CODE::measuredSpl + 20 * log10(R)::, and with a 0 dB source level fed at CODE::refRms:: this equals TELETYPE::K + refRms::, hence:
+
+TELETYPE::
+K = measuredSpl + 20 * log10(sourceDepth + micDistance) - refRms
+::
+
+ARGUMENT::measuredSpl
+The level your sound-level meter shows (dB SPL) while the CODE::*ar:: tone plays, measured on-axis in front of the array. Use a broadband / C-weighted reading (the tone is pink noise).
+
+ARGUMENT::refRms
+The reference RMS you passed to LINK::#*ar:: (dBFS). Must match. Default CODE::-20::.
+
+ARGUMENT::sourceDepth
+The CODE::sourceDepth:: you passed to LINK::#*ar:: (m). Default CODE::1.0::.
+
+ARGUMENT::micDistance
+Distance of the microphone in front of the array (m); set this equal to CODE::zRef:: to measure at the reference line. Default CODE::2.0::.
+
+RETURNS:: TELETYPE::K:: in dB (also printed). Pass it as CODE::kFactor:: to LINK::Classes/PanWFS_Monopole:: / LINK::Classes/PanWFS_Cardioid::.
+
+EXAMPLES::
+
+CODE::
+// 1. Play the calibration tone through the array in WFS render.
+c = { PanWFS_Calibrate.ar(numChans: 16, speaker_distance: 0.1, zRef: 2, sourceDepth: 1.0, refRms: -20) }.play;
+
+// 2. Read a sound-level meter on-axis, 2 m in front of the array. Suppose it shows 78 dB.
+//    Compute K (printed to the post window) and keep it:
+~k = PanWFS_Calibrate.k(measuredSpl: 78, refRms: -20, sourceDepth: 1.0, micDistance: 2.0);
+c.free;
+
+// 3. Use ~k with the renderers; maxSpl now sets each source's loudness in dB SPL.
+(
+{
+    var whisper = PinkNoise.ar(0.2);
+    var horn    = SinOsc.ar(440) * 0.2;
+    // both fed at full scale, but rendered at very different real levels:
+    PanWFS_Monopole.ar(whisper, -1.5, 3, 16, 0.1, 2, kFactor: ~k, maxSpl: 30)   // whisper
+    + PanWFS_Monopole.ar(horn,   1.5, 3, 16, 0.1, 2, kFactor: ~k, maxSpl: 110); // car horn
+}.play;
+)
+::

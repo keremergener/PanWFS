@@ -1,10 +1,11 @@
 CLASS:: PanWFS_Monopole
 SUMMARY:: Equidistant Linear Wave Field Synthesis Panner for Monopole Sound Sources in Cartesian Space
 CATEGORIES:: UGens>Multichannel>Panners>PanWFS
+RELATED:: Classes/PanWFS_Cardioid, Classes/PanWFS_Calibrate
 
 DESCRIPTION::
 
-PanWFS_Cartesian renders a single virtual point source for monopole sound sources over a straight line array of loudspeakers using 2½-D Wave Field Synthesis (WFS). It outputs signals for n channels of audio, applying the per-speaker delay and amplitude derived from the Rayleigh/Huygens formulation.
+PanWFS_Monopole renders a single virtual point source for monopole sound sources over a straight line array of loudspeakers using 2½-D Wave Field Synthesis (WFS). It outputs signals for n channels of audio, applying the per-speaker delay and amplitude derived from the Rayleigh/Huygens formulation.
 
 This UGen is designed for both able to create non-focused (behind the speaker) and focused (front of the speaker) sound sources.
 
@@ -55,21 +56,41 @@ Local ambient barometric pressure is in pascals (At sea level = 101325 Pa).
 ARGUMENT::max_delay
 It is the buffer size of the delay. Increase it with caution.
 
+ARGUMENT::lagTime
+Position smoothing time in seconds. When the source moves, the per-loudspeaker delays and gains glide to their new values over this interval (one-pole smoothing) so motion does not click or zipper. Larger values are smoother but more sluggish; smaller values track movement more tightly. 0 disables smoothing (instant, may click). Typical: 0.02.
+
+ARGUMENT::kFactor
+System calibration constant K, in dB. It is the sound pressure level produced at 1 m for a virtual source fed a 0 dBFS-RMS signal through THIS array — the single number that ties the digital signal to physical SPL, folding in the audio interface, amplifier, loudspeaker sensitivity and the array summation. Measure it once with a sound-level meter using LINK::Classes/PanWFS_Calibrate::, which prints the value.
+
+Together with CODE::maxSpl:: it scales the source so its loudness is expressed in real dB SPL. The applied gain is CODE::10 ** ((maxSpl - kFactor) / 20)::.
+
+Default CODE::0:: means "uncalibrated": with CODE::maxSpl:: also 0 the gain is unity and no SPL scaling is applied.
+
+ARGUMENT::maxSpl
+The intended level of this source, in dB SPL at 1 m, for a full-scale (0 dBFS) signal — i.e. the loudest level the source reaches. Choose it from the source's real-world loudness: whisper ~30, conversation ~60, raised voice ~75, trumpet (ff) ~90, power tool ~100, car horn ~110.
+
+Because the applied gain is CODE::10 ** ((maxSpl - kFactor) / 20)::, a normalised whisper and a normalised siren are separated purely by their CODE::maxSpl::, while the dynamics within each signal are preserved.
+
+WARNING::
+CODE::kFactor:: and CODE::maxSpl:: are meant to be set together, AFTER calibration. With the defaults (both CODE::0::) the gain is unity (SPL scaling off). Setting CODE::maxSpl:: while CODE::kFactor:: is still CODE::0:: applies a gain of CODE::10 ** (maxSpl / 20):: — for CODE::maxSpl = 90:: that is roughly +90 dB, which clips hard and can damage loudspeakers. Always obtain CODE::kFactor:: from LINK::Classes/PanWFS_Calibrate:: first.
+::
+
 EXAMPLES::
 
 CODE::
+// 1. Calibrate once. Play the tone in WFS render and read a sound-level meter
+//    on-axis at the reference line (here the meter sits 2 m in front of the array).
+c = { PanWFS_Calibrate.ar(numChans: 8, speaker_distance: 0.127, sourceDepth: 1.0, refRms: -20) }.play;
 
-SynthDef(\WFS, {
+// Suppose the meter reads 78 dB. Get K (printed to the post window):
+~k = PanWFS_Calibrate.k(measuredSpl: 78, refRms: -20, sourceDepth: 1.0, micDistance: 2.0);
+c.free;
 
-	arg out=0, amp = 0.5, virtual_x=0.0, virtual_z=0.0;
-	var sig;
-
-	sig = WhiteNoise.ar*EnvGen.kr(Env.perc(0.01, 0.2), Impulse.kr(2));
-
-	sig = PanWFS_Cartesian.ar(input: sig, virtual_x, 8, 0.127);
-
-	Out.ar(out, sig);
-
+// 2. Render a source at a chosen SPL using that K.
+SynthDef(\WFS, { |out = 0, virtual_x = 0.0, virtual_z = 2.0|
+    var sig = WhiteNoise.ar * EnvGen.kr(Env.perc(0.01, 0.2), Impulse.kr(2));
+    sig = PanWFS_Monopole.ar(sig, virtual_x, virtual_z, 8, 0.127, 2,
+        kFactor: ~k, maxSpl: 75);   // render this source at ~75 dB SPL @ 1 m
+    Out.ar(out, sig);
 }).add;
-
 ::
